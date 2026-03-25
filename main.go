@@ -59,21 +59,30 @@ func updateActionPins(files []string) error {
 		}
 		owner, repo := parts[0], parts[1]
 
-		ref, _, err := githubClient.Git.GetRef(context.Background(), owner, repo, "refs/heads/"+version)
+		ref, resp, err := githubClient.Git.GetRef(context.Background(), owner, repo, "refs/heads/"+version)
 		if err == nil && ref.Object != nil {
 			return ref.Object.GetSHA(), nil
 		}
+		if err != nil && (resp == nil || resp.StatusCode != 404) {
+			return "", fmt.Errorf("GitHub API error fetching heads: %w", err)
+		}
 
-		ref, _, err = githubClient.Git.GetRef(context.Background(), owner, repo, "refs/tags/"+version)
+		ref, resp, err = githubClient.Git.GetRef(context.Background(), owner, repo, "refs/tags/"+version)
 		if err == nil && ref.Object != nil {
 			sha := ref.Object.GetSHA()
 			if ref.Object.GetType() == "tag" {
-				tagObj, _, tagErr := githubClient.Git.GetTag(context.Background(), owner, repo, sha)
+				tagObj, tagResp, tagErr := githubClient.Git.GetTag(context.Background(), owner, repo, sha)
 				if tagErr == nil && tagObj.Object != nil {
 					return tagObj.Object.GetSHA(), nil
 				}
+				if tagErr != nil && (tagResp == nil || tagResp.StatusCode != 404) {
+					return "", fmt.Errorf("GitHub API error fetching tag object: %w", tagErr)
+				}
 			}
 			return sha, nil
+		}
+		if err != nil && (resp == nil || resp.StatusCode != 404) {
+			return "", fmt.Errorf("GitHub API error fetching tags: %w", err)
 		}
 
 		return "", fmt.Errorf("could not find branch or tag '%s' for %s/%s", version, owner, repo)
@@ -167,8 +176,8 @@ func correctFile(filename string, shaFromActionVersion func(string, string) (str
 		matches := usesRegex.FindStringSubmatch(currLine)
 
 		if matches != nil {
-			action := matches[1]
-			version := matches[2]
+			action := strings.Trim(matches[1], `"'`)
+			version := strings.Trim(matches[2], `"'`)
 
 			if !shaRegex.MatchString(version) {
 				sha, err := shaFromActionVersion(action, version)

@@ -39,6 +39,8 @@ func TestGetWorkflowFileList(t *testing.T) {
 		"test/fixtures/workflows/good_workflow.yml",
 		"test/fixtures/workflows/bad_workflow_fixed.yml",
 		"test/fixtures/workflows/no_deps_workflow.yml",
+		"test/fixtures/workflows/quoted_workflow.yml",
+		"test/fixtures/workflows/quoted_workflow_fixed.yml",
 	}
 
 	files, err := getWorkflowFileList("test/fixtures")
@@ -72,6 +74,7 @@ func TestCorrectFile(t *testing.T) {
 		{"tmp/workflows/good_workflow.yml", "tmp/workflows/good_workflow.yml"},
 		{"tmp/workflows/no_deps_workflow.yml", "tmp/workflows/no_deps_workflow.yml"},
 		{"tmp/workflows/bad_workflow.yml", "tmp/workflows/bad_workflow_fixed.yml"},
+		{"tmp/workflows/quoted_workflow.yml", "tmp/workflows/quoted_workflow_fixed.yml"},
 	} {
 		actualFilename, expectedFilename := filePair[0], filePair[1]
 

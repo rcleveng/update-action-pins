@@ -1,0 +1,15 @@
+name: Quoted Workflow
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: "actions/checkout@v3"
+      - name: Set up Node.js
+        uses: 'actions/setup-node@v3'
+      - name: Cache dependencies
+        uses: "actions/cache@2f8e54208210a422b2efd51efaa6bd6d7ca8920f" # v3
